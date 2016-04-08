@@ -53,7 +53,7 @@ public class SupportTicketGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String ticketDescription=descriptionTextField.getText();
                 String ticketReporter=reporterTextField.getText();
-                int ticketPriority= Integer.parseInt(priorityTextField.getText());
+                int ticketPriority= Integer.parseInt(priorityTextField.getText());//replace with drop down list to select priority
             }
         });
     }
