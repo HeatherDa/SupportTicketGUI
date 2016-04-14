@@ -30,12 +30,12 @@ public class SupportTicketGUI extends JFrame {
 
 
     DefaultListModel<Ticket> allOpenTicketsModel;
-    DefaultComboBoxModel<Integer> priorityComboModel;
+    DefaultComboBoxModel<Integer>priorityComboModel;
 
     public SupportTicketGUI() throws IOException {
         super("Support Ticket Program");//Set title bar
 
-        ticketVector=TicketFileManager.read("TicketQ");//get information from file about tickets.
+        ticketVector=TicketFileManager.read("TicketQ.txt");//get information from file about tickets.
 
         setContentPane(rootPanel);
         setPreferredSize(new Dimension(600,400));
@@ -56,13 +56,16 @@ public class SupportTicketGUI extends JFrame {
         priorityComboModel.addElement(4);
         priorityComboModel.addElement(5);
 
+
+
         //Listeners go here
         addTicketButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String ticketDescription=descriptionTextField.getText();
                 String ticketReporter=reporterTextField.getText();
-                int ticketPriority= (Integer) priorityComboBox.getSelectedItem();//replace with drop down list to select priority
+                //int ticketPriority= Integer.parseInt(priorityTextField.getText());//replace with drop down list to select priority
+                int ticketPriority= (Integer) priorityComboBox.getSelectedItem();
                 Ticket t=new Ticket(ticketDescription, ticketPriority, ticketReporter, new Date());
                 addTicketInPriorityOrder(ticketVector, t); //add ticket to Vector in the correct order
                 //Maybe you can only add strings to a jlist?
@@ -81,8 +84,9 @@ public class SupportTicketGUI extends JFrame {
                 String descResolve=resolutionDescriptionTextField.getText();
                 resolvedTicket resolved=new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
                 resolvedTicket.setResolvedTickets(resolved);
+
+                //openTicketList.remove(selectedIndex);// Only works without this.  Why?
                 ticketVector.remove(selectedTicket);
-                openTicketList.remove(selectedIndex);
                 sorter();//refreshes list so you can see that deleted ticket is gone.
             }
         });
