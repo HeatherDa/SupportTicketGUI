@@ -56,7 +56,7 @@ public class SupportTicketGUI extends JFrame {
         priorityComboModel.addElement(4);
         priorityComboModel.addElement(5);
 
-
+        sorter();
 
         //Listeners go here
         addTicketButton.addActionListener(new ActionListener() {
