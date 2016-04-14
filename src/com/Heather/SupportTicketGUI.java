@@ -3,6 +3,7 @@ package com.Heather;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -17,19 +18,19 @@ public class SupportTicketGUI extends JFrame {
     private JTextField priorityTextField;
     private JTextField resolutionDescriptionTextField;
     private JButton quitButton;
-    private JComboBox<Ticket> selectTicketToDelete;
     private JPanel rootPanel;
     private JLabel descriptionLabel;
     private JLabel reporterLabel;
     private JLabel priorityLabel;
     private JLabel resolutionDescriptionLabel;
+    private JComboBox priorityComboBox;
 
-    private static Vector<Ticket> ticketVector;
-    private Ticket selectedTicket;
+    private  Vector<Ticket> ticketVector;
 
-    DefaultComboBoxModel<Ticket> selectDelete;
+
+
     DefaultListModel<Ticket> allOpenTicketsModel;
-
+    DefaultComboBoxModel<Integer> priorityComboModel;
 
     public SupportTicketGUI() throws IOException {
         super("Support Ticket Program");//Set title bar
@@ -37,18 +38,23 @@ public class SupportTicketGUI extends JFrame {
         ticketVector=TicketFileManager.read("TicketQ");//get information from file about tickets.
 
         setContentPane(rootPanel);
+        setPreferredSize(new Dimension(600,400));
         pack();
         setVisible(true);
 
-        selectDelete = new DefaultComboBoxModel<>();
+        //Model assignments
         allOpenTicketsModel=new DefaultListModel<>();
+        priorityComboModel=new DefaultComboBoxModel<>();
 
-        selectTicketToDelete.setModel(selectDelete);
         openTicketList.setModel(allOpenTicketsModel);
+        priorityComboBox.setModel(priorityComboModel);
 
-        Ticket deleteTicket=(Ticket)selectTicketToDelete.getModel().getSelectedItem(); //Ticket selected for deletion
-
-
+        //put numbers in priority combobox
+        priorityComboModel.addElement(1);
+        priorityComboModel.addElement(2);
+        priorityComboModel.addElement(3);
+        priorityComboModel.addElement(4);
+        priorityComboModel.addElement(5);
 
         //Listeners go here
         addTicketButton.addActionListener(new ActionListener() {
@@ -56,26 +62,28 @@ public class SupportTicketGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String ticketDescription=descriptionTextField.getText();
                 String ticketReporter=reporterTextField.getText();
-                int ticketPriority= Integer.parseInt(priorityTextField.getText());//replace with drop down list to select priority
+                int ticketPriority= (Integer) priorityComboBox.getSelectedItem();//replace with drop down list to select priority
                 Ticket t=new Ticket(ticketDescription, ticketPriority, ticketReporter, new Date());
                 addTicketInPriorityOrder(ticketVector, t); //add ticket to Vector in the correct order
+                //Maybe you can only add strings to a jlist?
+                allOpenTicketsModel.addElement(t);//can't add ticketVector, will duplicate entries.  must add Element by index position.
+                sorter();
             }
         });
-        openTicketList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                int selectedIndex= openTicketList.getSelectedIndex();
-                selectedTicket=ticketVector.get(selectedIndex);
-            }
-        });
+
 
 
         deleteTicketButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int selectedIndex=openTicketList.getSelectedIndex();
+                Ticket selectedTicket=ticketVector.get(selectedIndex);
                 String descResolve=resolutionDescriptionTextField.getText();
-            resolvedTicket resolved=new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
+                resolvedTicket resolved=new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
                 resolvedTicket.setResolvedTickets(resolved);
+                ticketVector.remove(selectedTicket);
+                openTicketList.remove(selectedIndex);
+                sorter();//refreshes list so you can see that deleted ticket is gone.
             }
         });
         quitButton.addActionListener(new ActionListener() {
@@ -93,9 +101,7 @@ public class SupportTicketGUI extends JFrame {
         });
 
     }
-    public static Vector<Ticket> getTicketVector(){
-        return ticketVector;
-    }
+
     protected static void addTicketInPriorityOrder(Vector<Ticket> tickets, Ticket newTicket){
 
         //Logic: assume the list is either empty or sorted
@@ -144,6 +150,16 @@ public class SupportTicketGUI extends JFrame {
         }
 
         return results;
+    }
+
+    public void sorter() {
+        allOpenTicketsModel.clear();
+        for (Ticket tic:ticketVector){
+            allOpenTicketsModel.addElement(tic);
+        }
+        descriptionTextField.setText("");
+        resolutionDescriptionTextField.setText("");
+        reporterTextField.setText("");
     }
 
 
