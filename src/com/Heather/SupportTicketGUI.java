@@ -24,13 +24,21 @@ public class SupportTicketGUI extends JFrame {
     private JLabel priorityLabel;
     private JLabel resolutionDescriptionLabel;
     private JComboBox priorityComboBox;
+    private JList searchResultsList;
+    private JTextField searchTextField;
+    private JButton searchForTicketButton;
+    private JLabel searchResultsLabel;
+    private JComboBox criteriaTypeComboBox;
+    private JTextField toResolveATicketTextField;
 
     private  Vector<Ticket> ticketVector;
-
+    private Vector<Ticket> results;
 
 
     DefaultListModel<Ticket> allOpenTicketsModel;
+    DefaultListModel<Ticket> searchResultsModel;
     DefaultComboBoxModel<Integer>priorityComboModel;
+    DefaultComboBoxModel<String>criteriaTypeComboModel;
 
     public SupportTicketGUI() throws IOException {
         super("Support Ticket Program");//Set title bar
@@ -38,16 +46,20 @@ public class SupportTicketGUI extends JFrame {
         ticketVector=TicketFileManager.read("TicketQ.txt");//get information from file about tickets.
 
         setContentPane(rootPanel);
-        setPreferredSize(new Dimension(600,400));
+        setPreferredSize(new Dimension(800,500));
         pack();
         setVisible(true);
 
         //Model assignments
         allOpenTicketsModel=new DefaultListModel<>();
+        searchResultsModel=new DefaultListModel<>();
         priorityComboModel=new DefaultComboBoxModel<>();
+        criteriaTypeComboModel=new DefaultComboBoxModel<>();
 
         openTicketList.setModel(allOpenTicketsModel);
+        searchResultsList.setModel(searchResultsModel);
         priorityComboBox.setModel(priorityComboModel);
+        criteriaTypeComboBox.setModel(criteriaTypeComboModel);
 
         //put numbers in priority combobox
         priorityComboModel.addElement(1);
@@ -56,7 +68,13 @@ public class SupportTicketGUI extends JFrame {
         priorityComboModel.addElement(4);
         priorityComboModel.addElement(5);
 
-        sorter();
+        //put types in criteriaType combobox
+        criteriaTypeComboModel.addElement("Ticket ID");
+        criteriaTypeComboModel.addElement("Description");
+        criteriaTypeComboModel.addElement("Reporter");
+
+
+        refreshOpenTickets();
 
         //Listeners go here
         addTicketButton.addActionListener(new ActionListener() {
@@ -70,24 +88,42 @@ public class SupportTicketGUI extends JFrame {
                 addTicketInPriorityOrder(ticketVector, t); //add ticket to Vector in the correct order
                 //Maybe you can only add strings to a jlist?
                 allOpenTicketsModel.addElement(t);//can't add ticketVector, will duplicate entries.  must add Element by index position.
-                sorter();
+                refreshOpenTickets();
             }
         });
-
+        searchForTicketButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                search();
+                refreshResults();
+            }
+        });
 
 
         deleteTicketButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectedIndex=openTicketList.getSelectedIndex();
-                Ticket selectedTicket=ticketVector.get(selectedIndex);
-                String descResolve=resolutionDescriptionTextField.getText();
-                resolvedTicket resolved=new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
-                resolvedTicket.setResolvedTickets(resolved);
+                int searchIndex=searchResultsList.getSelectedIndex();
+                Ticket selectedTicket;
+                try {
+                    selectedTicket = ticketVector.get(selectedIndex);
+                    String descResolve = resolutionDescriptionTextField.getText();
+                    resolvedTicket resolved = new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
+                    resolvedTicket.setResolvedTickets(resolved);
+                }catch(ArrayIndexOutOfBoundsException ai){
+                    selectedIndex=searchIndex;
+                    selectedTicket = ticketVector.get(selectedIndex);
+                    String descResolve = resolutionDescriptionTextField.getText();
+                    resolvedTicket resolved = new resolvedTicket(selectedTicket.getTicketID(), selectedTicket.getDescription(), selectedTicket.getPriority(), selectedTicket.getReporter(), selectedTicket.getDateReported(), new Date(), descResolve);
+                    resolvedTicket.setResolvedTickets(resolved);
+                    results.remove(selectedTicket);
+                }
 
                 //openTicketList.remove(selectedIndex);// Only works without this.  Why?
                 ticketVector.remove(selectedTicket);
-                sorter();//refreshes list so you can see that deleted ticket is gone.
+                refreshOpenTickets();//refreshes list so you can see that deleted ticket is gone.
+                refreshResults();
             }
         });
         quitButton.addActionListener(new ActionListener() {
@@ -133,30 +169,35 @@ public class SupportTicketGUI extends JFrame {
         //If that happens, it must be lower priority than all other tickets. So, add to the end.
         tickets.addElement(newTicket);//addElement works like addLast
     }
-    public static ArrayList<Ticket>search( String criteria, LinkedList<Ticket> ticketQueue ){
-        ArrayList<Ticket>results=new ArrayList<>();
+    public Vector<Ticket>search(){
+        results=new Vector<>();
+        String criteria=searchTextField.getText();
+        String type= (String) criteriaTypeComboBox.getSelectedItem();
         criteria=criteria.toLowerCase();
-        for (Ticket t:ticketQueue){
-            try{
-                if(t.getDescription().contains(criteria)){
-                    results.add(t);
-                }else if (t.getReporter().contains(criteria)){
-                    results.add(t);
-                }
-                else if (t.getTicketID()==Integer.parseInt(criteria)) {
-                    results.add(t);
-                }
-            }catch(NumberFormatException ne){
-                if(results.size()==0) {
-                    System.out.println("There is no ticket containing this criteria.");
-                }
+        try {
+            for (Ticket t : ticketVector) {
+                if (type.equalsIgnoreCase("Ticket ID")) {
+                    if (t.getTicketID() == Integer.parseInt(criteria)) {
+                        results.add(t);
+                    }
+                } else if (type.equalsIgnoreCase("Description")) {
+                    if (t.getDescription().contains(criteria)) {
+                        results.add(t);
+                    }
+                } else if (type.equalsIgnoreCase("Reporter"))
+                    if (t.getReporter().contains(criteria)) {
+                        results.add(t);
+                    }
             }
+        }catch(NumberFormatException ne){
+            if(results.size()==0) {
+                searchResultsLabel.setText("There are no tickets containing this criteria.");
+                }
         }
-
         return results;
     }
 
-    public void sorter() {
+    public void refreshOpenTickets() {
         allOpenTicketsModel.clear();
         for (Ticket tic:ticketVector){
             allOpenTicketsModel.addElement(tic);
@@ -166,7 +207,13 @@ public class SupportTicketGUI extends JFrame {
         reporterTextField.setText("");
     }
 
-
+    public void refreshResults(){
+        searchResultsModel.clear();
+        for(Ticket r:results){
+            searchResultsModel.addElement(r);
+        }
+        searchTextField.setText("");
+    }
 
 
 
