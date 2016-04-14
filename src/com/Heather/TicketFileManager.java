@@ -8,7 +8,7 @@ public class TicketFileManager {
     TicketFileManager() throws IOException {
     }
 
-    public static void writeFiles(LinkedList<Ticket> ticketQ) throws IOException {
+    public static void writeFiles(Vector<Ticket> ticketQ) throws IOException {
         String date=(String.valueOf(new Date())).replaceAll(" ","_");
         String filedate=date.replaceAll(":","-");
         String filenameR="Resolved_tickets_as_of_"+filedate+".txt";
@@ -68,7 +68,7 @@ public class TicketFileManager {
 
     }
 
-    private static void writeQ(String filename, LinkedList<Ticket>TicketQ) throws IOException {
+    private static void writeQ(String filename, Vector<Ticket> TicketQ) throws IOException {
 
         FileWriter writer = new FileWriter(filename);
         BufferedWriter bufWriter = new BufferedWriter(writer);

@@ -6,11 +6,13 @@ public class TicketManager {
     public static void main(String[] args) throws IOException {
         LinkedList<Ticket> ticketQueue = new LinkedList<>();
         Scanner scan = new Scanner(System.in);
-        LinkedList<Ticket> testin=TicketFileManager.read("TicketQ.txt");
-        if(!testin.isEmpty()){
-            ticketQueue=testin;
-        }
+        //LinkedList<Ticket> testin=TicketFileManager.read("TicketQ.txt");
+        //if(!testin.isEmpty()){
+        //  ticketQueue=testin;
+        //}
+        new SupportTicketGUI();
 
+/*
         while(true){
 
             System.out.println("1. Enter Ticket\n2. Delete Ticket by ID\n3. Delete Ticket by Issue\n4. Search by Name\n5. Display All Tickets\n6. Quit");
@@ -109,7 +111,8 @@ public class TicketManager {
         return t;
     }
 
-    protected static void addTickets(LinkedList<Ticket> ticketQueue) {
+   */
+/* protected static void addTickets(LinkedList<Ticket> ticketQueue) {
         Scanner sc = new Scanner(System.in);
         boolean moreProblems = true;
         String description, reporter;
@@ -138,9 +141,11 @@ public class TicketManager {
                 moreProblems = false;
             }
         }
-    }
+    }*//*
 
-    protected static void addTicketInPriorityOrder(LinkedList<Ticket> tickets, Ticket newTicket){
+
+    */
+/*protected static void addTicketInPriorityOrder(LinkedList<Ticket> tickets, Ticket newTicket){
 
         //Logic: assume the list is either empty or sorted
 
@@ -167,6 +172,7 @@ public class TicketManager {
         //If that happens, it must be lower priority than all other tickets. So, add to the end.
         tickets.addLast(newTicket);
     }
+*//*
 
     public static ArrayList<Ticket>search( String criteria, LinkedList<Ticket> ticketQueue ){
         ArrayList<Ticket>results=new ArrayList<>();
@@ -189,5 +195,6 @@ public class TicketManager {
         }
 
         return results;
+    */
     }
 }
